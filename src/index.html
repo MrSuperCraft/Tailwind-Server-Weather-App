@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather App</title>
+  <link rel="stylesheet" href="/dist/output.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" 
+  integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" 
+  crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="../css/weather-icons.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.12/css/weather-icons.min.css" 
+  integrity="sha512-r/Gan7PMSRovDus++vDS2Ayutc/cSdl268u047n4z+k7GYuR7Hiw71FsT3QQxdKJBVHYttOJ6IGLnlM9IoMToQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<style>
+  #autocomplete-list {
+    max-height: 150px;
+    overflow-y: auto;
+    display: none; /* Hide the autocomplete list by default */
+  }
+
+  #autocomplete-list div {
+    padding: 2px 4px;
+    cursor: pointer;
+  }
+
+  #autocomplete-list div:hover {
+    background-color: #edf2f7;
+  }
+</style>
+
+<body class="font-poppins">
+  <div class="flex flex-col h-screen bg-gradient-to-br from-green-500 to-blue-900 text-center items-center">
+    <h1 class="mt-32 font-bold text-5xl mb-10">MrSuperCraft's <i class="text-blue-400 not-italic">Weather</i> App</h1>
+    <div class="w-full flex flex-row justify-center">
+      <input class="w-1/5 h-14 rounded-md bg-white shadow-lg duration-200 transition-all hover:scale-105 focus:outline-none pl-2 mx-5" type="text" id="city" placeholder="Enter city name" oninput="handleInput()">
+      <div id="autocomplete-list" class="absolute w-1/5 bg-white rounded-md shadow-md mt-12 mr-24 overflow-y-auto">
+        <div class="divide-y divide-gray-200">
+          <div id="suggestion1" class="p-2 cursor-pointer hover:bg-gray-100"></div>
+          <div id="suggestion2" class="p-2 cursor-pointer hover:bg-gray-100"></div>
+          <div id="suggestion3" class="p-2 cursor-pointer hover:bg-gray-100"></div>
+          <!-- Add more suggestions as needed -->
+        </div>
+      </div> <!-- Correct placement of the closing div tag -->
+      <button class="bg-white h-14 w-20 border-none outline-none shadow-lg rounded-md transition-all hover:scale-105 duration-200 hover:text-white hover:bg-blue-500 mx-2" onclick="getWeather()">
+        <i class="fas fa-search"></i>
+      </button>
+    </div>
+    <div id="result" class="mt-20 flex flex-col items-center"></div>
+  </div>
+
+  <script src="/src/script.js"></script>
+</body>
+</html>
