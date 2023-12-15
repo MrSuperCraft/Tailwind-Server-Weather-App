@@ -9,9 +9,41 @@ const getApiKey = async () => {
     }
 };
 
-  
-  
-  async function getWeather() {
+function createWeatherBox(...metrics) {
+    const gridContainer = document.getElementById('result');
+
+    // Create a weather box
+    const weatherBox = document.createElement('div');
+    weatherBox.classList.add('weather-box', 'bg-white', 'rounded-md', 'p-4', 'text-center', 'transition-transform', 'transform', 'hover:scale-105');
+
+    metrics.forEach(([label, value, iconClass]) => {
+        // Create metric element
+        const metricElement = document.createElement('div');
+        metricElement.classList.add('mb-4');
+
+        // Create icon element
+        const iconElement = document.createElement('i');
+        // Apply Weather Icons class using classList
+        iconElement.classList.add('wi', iconClass, 'text-5xl', 'mb-5');
+
+        // Create value element
+        const valueElement = document.createElement('p');
+        valueElement.classList.add('text-md' , 'mt-4');
+        valueElement.innerHTML = `${label}: ${value}`;
+
+        // Append elements to the metric element
+        metricElement.appendChild(iconElement);
+        metricElement.appendChild(valueElement);
+
+        // Append metric element to the weather box
+        weatherBox.appendChild(metricElement);
+    });
+
+    // Append weather box to the grid container
+    gridContainer.appendChild(weatherBox);
+}
+
+async function getWeather() {
     const apiKey = await getApiKey();
 
     if (!apiKey) {
@@ -21,79 +53,54 @@ const getApiKey = async () => {
 
     const city = document.getElementById('city').value;
     const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`;
-  
+
     fetch(apiUrl)
-      .then(response => response.json())
-      .then(data => {
-        const weatherDescription = data.weather[0].description;
-        const temperature = Math.round(data.main.temp - 273.15); // Convert Kelvin to Celsius
-        const iconCode = data.weather[0].icon;
-        const country = data.sys.country;
+        .then(response => response.json())
+        .then(data => {
+            const temperature = Math.round(data.main.temp - 273.15); // Convert Kelvin to Celsius
+            const iconCode = data.weather[0].icon;
+            const country = data.sys.country;
+            const humidity = data.main.humidity;
+            const windSpeed = data.wind.speed;
 
             const resultContainer = document.getElementById('result');
             resultContainer.innerHTML = ''; // Clear previous content
 
-            // Create elements for result layout
-            const cityElement = document.createElement('p');
-            cityElement.textContent = `City: ${city}, ${country}`;
-
-            const descriptionElement = document.createElement('p');
-            descriptionElement.textContent = `Weather: ${weatherDescription}`;
-
-            const temperatureElement = document.createElement('p');
-            temperatureElement.textContent = `Temperature: ${temperature}°C`;
-
-            // Create an element for the weather icon
-            const iconElement = document.createElement('i');
-            
-            // Set the class based on the icon code
-            if (iconCode.startsWith('01')) {
-                // Clear sky
-                iconElement.className = 'wi wi-day-sunny';
-            } else if (iconCode.startsWith('02')) {
-                // Few clouds
-                iconElement.className = 'wi wi-day-cloudy';
-            } else if (iconCode.startsWith('03') || iconCode.startsWith('04')) {
-                // Cloudy
-                iconElement.className = 'wi wi-cloudy';
-            } else if (iconCode.startsWith('09')) {
-                // Showers
-                iconElement.className = 'wi wi-showers';
-            } else if (iconCode.startsWith('10')) {
-                // Rain
-                iconElement.className = 'wi wi-rain';
-            } else if (iconCode.startsWith('11')) {
-                // Thunderstorm
-                iconElement.className = 'wi wi-thunderstorm';
-            } else if (iconCode.startsWith('13')) {
-                // Snow
-                iconElement.className = 'wi wi-snow';
-            } else if (iconCode.startsWith('50')) {
-                // Mist or fog
-                iconElement.className = 'wi wi-fog';
-            } else {
-                // Default to a generic icon
-                iconElement.className = 'wi wi-day-sunny-overcast';
-            }
-
-            //  Edit sizes & layout
-            iconElement.classList.add('text-5xl', 'mt-10');
-            cityElement.classList.add('text-2xl', 'mt-7');
-            descriptionElement.classList.add('text-2xl', 'mt-7');
-            temperatureElement.classList.add('text-2xl', 'mt-7');
-
-            // Append elements to result container
-            resultContainer.appendChild(iconElement);
-            resultContainer.appendChild(cityElement);
-            resultContainer.appendChild(descriptionElement);
-            resultContainer.appendChild(temperatureElement);
-
-            console.log(data);
+            // Create weather boxes for different metrics
+            createWeatherBox(['Location', `${city}, ${country}`, getWeatherIconClass(iconCode)]);
+            createWeatherBox(['Wind Speed', `${windSpeed} m/s`, 'wi-strong-wind']);
+            createWeatherBox(['Temperature', `${temperature}°C`, 'wi-thermometer']);
+            createWeatherBox(['Humidity', `${humidity}%`, 'wi-humidity']);
         })
         .catch(error => {
             console.error('Error fetching weather data:', error);
             document.getElementById('result').innerHTML = 'Error fetching weather data';
         });
+}
+
+// Function to get the Weather Icons class based on the icon code
+function getWeatherIconClass(iconCode) {
+    // Implement logic to map iconCode to Weather Icons class
+    // For example:
+    if (iconCode.startsWith('01')) {
+        return 'wi-day-sunny';
+    } else if (iconCode.startsWith('02')) {
+        return 'wi-day-cloudy';
+    } else if (iconCode.startsWith('03') || iconCode.startsWith('04')) {
+        return 'wi-cloudy';
+    } else if (iconCode.startsWith('09')) {
+        return 'wi-showers';
+    } else if (iconCode.startsWith('10')) {
+        return 'wi-rain';
+    } else if (iconCode.startsWith('11')) {
+        return 'wi-thunderstorm';
+    } else if (iconCode.startsWith('13')) {
+        return 'wi-snow';
+    } else if (iconCode.startsWith('50')) {
+        return 'wi-fog';
+    } else {
+        return 'wi-day-sunny-overcast';
+    }
 }
 
 async function handleInput() {
@@ -138,11 +145,13 @@ async function fetchCityData(query) {
         const data = await response.json();
         
         // Extract relevant city data
-        const cityData = data.geonames.map(city => ({
-            name: city.name,
-            country: city.countryName,
-            // Add more properties as needed
-        }));
+        const cityData = data.geonames
+            .filter(city => city.population && city.population > 0) // Filter out entries without valid population
+            .map(city => ({
+                name: city.name,
+                country: city.countryName,
+                // Add more properties as needed
+            }));
 
         return cityData;
     } catch (error) {
@@ -150,12 +159,3 @@ async function fetchCityData(query) {
         return []; // Return an empty array in case of an error
     }
 }
-
-async function getData() {
-    try {
-      const [apiKey, weatherData] = await Promise.all([getApiKey(), getWeather()]);
-      // Handle apiKey and weatherData as needed
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  }
